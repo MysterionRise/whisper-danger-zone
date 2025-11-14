@@ -477,11 +477,18 @@ class TestLoadDiarizationPipeline:
         call_kwargs = mock_pipeline.from_pretrained.call_args[1]
         assert call_kwargs["use_auth_token"] == "explicit_token"
 
-    @patch("main.Pipeline", None)
     @patch("main.sys.exit")
     def test_load_pipeline_pyannote_not_installed(self, mock_exit):
         """Test error when pyannote.audio is not installed."""
-        load_diarization_pipeline("token")
+        # Import main and temporarily set Pipeline to None
+        import main
+
+        original_pipeline = main.Pipeline
+        try:
+            main.Pipeline = None
+            load_diarization_pipeline("token")
+        finally:
+            main.Pipeline = original_pipeline
 
         mock_exit.assert_called_once()
         assert "not installed" in str(mock_exit.call_args[0][0])

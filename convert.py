@@ -78,7 +78,9 @@ def collect_ogg_files(paths: Iterable[pathlib.Path]) -> List[pathlib.Path]:
     ogg_files: List[pathlib.Path] = []
     for p in paths:
         if p.is_dir():
-            ogg_files.extend(p.rglob("*.ogg"))
+            # Search for all case variants of .ogg extension
+            for pattern in ("*.ogg", "*.OGG", "*.Ogg"):
+                ogg_files.extend(p.rglob(pattern))
         elif p.suffix.lower() == ".ogg":
             ogg_files.append(p)
         else:

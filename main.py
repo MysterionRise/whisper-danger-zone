@@ -39,7 +39,7 @@ except ModuleNotFoundError:  # pragma: no cover
 ###############################################################################
 
 
-def parse_args() -> argparse.Namespace:  # pragma: no cover
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:  # pragma: no cover
     parser = argparse.ArgumentParser(
         prog="whisper-cli",
         description="Transcribe (and optionally diarize) audio with OpenAI Whisper.",
@@ -68,7 +68,7 @@ def parse_args() -> argparse.Namespace:  # pragma: no cover
     parser.add_argument("-o", "--output", type=pathlib.Path, help="Write plain transcript here.")
     parser.add_argument("--json", type=pathlib.Path, help="Write raw Whisper result dict to JSON.")
 
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 ###############################################################################
