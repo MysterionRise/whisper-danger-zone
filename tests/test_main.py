@@ -480,13 +480,17 @@ class TestLoadDiarizationPipeline:
     @patch("main.sys.exit")
     def test_load_pipeline_pyannote_not_installed(self, mock_exit):
         """Test error when pyannote.audio is not installed."""
+        # Make sys.exit raise SystemExit as it normally would
+        mock_exit.side_effect = SystemExit("pyannote.audio is not installed")
+
         # Import main and temporarily set Pipeline to None
         import main
 
         original_pipeline = main.Pipeline
         try:
             main.Pipeline = None
-            load_diarization_pipeline("token")
+            with pytest.raises(SystemExit):
+                load_diarization_pipeline("token")
         finally:
             main.Pipeline = original_pipeline
 
