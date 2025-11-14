@@ -38,6 +38,7 @@ except ModuleNotFoundError:  # pragma: no cover
 # Argument parsing
 ###############################################################################
 
+
 def parse_args() -> argparse.Namespace:  # pragma: no cover
     parser = argparse.ArgumentParser(
         prog="whisper-cli",
@@ -55,8 +56,7 @@ def parse_args() -> argparse.Namespace:  # pragma: no cover
     parser.add_argument("-q", "--quiet", action="store_true", help="Suppress progress bars.")
 
     # Speaker‑diarization toggle
-    parser.add_argument(
-        "--diarize", action="store_true", help="Run speaker diarization with pyannote.audio.")
+    parser.add_argument("--diarize", action="store_true", help="Run speaker diarization with pyannote.audio.")
     parser.add_argument(
         "--hf-token",
         metavar="TOKEN",
@@ -70,9 +70,11 @@ def parse_args() -> argparse.Namespace:  # pragma: no cover
 
     return parser.parse_args()
 
+
 ###############################################################################
 # Whisper
 ###############################################################################
+
 
 def run_whisper(args: argparse.Namespace) -> Dict[str, Any]:  # pragma: no cover
     if not args.audio.exists():
@@ -90,9 +92,11 @@ def run_whisper(args: argparse.Namespace) -> Dict[str, Any]:  # pragma: no cover
 
     return model.transcribe(str(args.audio), **kw)
 
+
 ###############################################################################
 # Diarization helpers
 ###############################################################################
+
 
 def load_diarization_pipeline(token: Optional[str]) -> "Pipeline":  # type: ignore  # pragma: no cover
     """Load the PyAnnote speaker‑diarization pipeline (lazy)."""
@@ -136,9 +140,11 @@ def merge_diarization(
         output.append({**seg, "speaker": speaker_id})
     return output
 
+
 ###############################################################################
 # Output helpers
 ###############################################################################
+
 
 def write_outputs(result: Dict[str, Any], args: argparse.Namespace) -> None:  # pragma: no cover
     """Write transcript/plain text and optional JSON to disk or stdout."""
@@ -166,9 +172,11 @@ def write_outputs(result: Dict[str, Any], args: argparse.Namespace) -> None:  # 
     if args.json:
         args.json.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
 
+
 ###############################################################################
 # Main program flow
 ###############################################################################
+
 
 def main() -> None:  # pragma: no cover
     args = parse_args()

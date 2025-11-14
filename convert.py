@@ -29,6 +29,7 @@ from pydub import AudioSegment  # type: ignore  # requires ffmpeg in PATH
 # CLI
 ###############################################################################
 
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:  # pragma: no cover
     p = argparse.ArgumentParser(
         prog="prepare-audio",
@@ -66,9 +67,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:  # prag
     )
     return p.parse_args(argv)
 
+
 ###############################################################################
 # Conversion logic
 ###############################################################################
+
 
 def collect_ogg_files(paths: Iterable[pathlib.Path]) -> List[pathlib.Path]:
     """Gather *.ogg files recursively from the given paths."""
@@ -107,9 +110,11 @@ def convert_file(
     except Exception as exc:  # pragma: no cover
         print(f"❌ Failed to convert {src}: {exc}", file=sys.stderr)
 
+
 ###############################################################################
 # Entry point
 ###############################################################################
+
 
 def main(argv: Sequence[str] | None = None) -> None:  # pragma: no cover
     args = parse_args(argv)
