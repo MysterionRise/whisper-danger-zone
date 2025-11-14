@@ -1,0 +1,40 @@
+[flake8]
+# Flake8 configuration for whisper-danger-zone
+
+max-line-length = 120
+max-complexity = 10
+
+# Exclude paths
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache,
+    htmlcov
+
+# Ignore specific error codes
+ignore =
+    # E203: whitespace before ':' (conflicts with black)
+    E203,
+    # W503: line break before binary operator (conflicts with black)
+    W503,
+    # E501: line too long (handled by black)
+    E501
+
+# Per-file ignores
+per-file-ignores =
+    # Ignore import errors in __init__.py files
+    __init__.py:F401,F403
+    # Ignore unused imports in test files
+    tests/*:F401,F811
+
+# Import order
+import-order-style = google
+application-import-names = whisper_danger_zone
