@@ -1,5 +1,8 @@
 # Development and testing dependencies for whisper-danger-zone
 
+# Pre-commit hooks
+pre-commit>=3.6.0
+
 # Testing framework
 pytest==8.3.4
 pytest-cov==6.0.0

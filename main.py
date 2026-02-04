@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Whisper CLI with optional speaker diarization.
 
 This script wraps the OpenAI Whisper models and—optionally—the `pyannote.audio`
@@ -90,7 +91,8 @@ def run_whisper(args: argparse.Namespace) -> Dict[str, Any]:  # pragma: no cover
     # ``verbose`` is inverted relative to "quiet"
     kw["verbose"] = not args.quiet
 
-    return model.transcribe(str(args.audio), **kw)
+    result: Dict[str, Any] = model.transcribe(str(args.audio), **kw)
+    return result
 
 
 ###############################################################################
@@ -108,7 +110,7 @@ def load_diarization_pipeline(token: Optional[str]) -> "Pipeline":  # type: igno
         print("⚠️  No HF token provided. Proceeding without one (may fail for private models).", file=sys.stderr)
 
     # Using the official pretrained pipeline released under Apache‑2.0.
-    return Pipeline.from_pretrained("pyannote/speaker-diarization@2.1", use_auth_token=auth_token)  # type: ignore
+    return Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=auth_token)  # type: ignore
 
 
 def diarize_audio(audio_path: pathlib.Path, pipeline: "Pipeline") -> List[Tuple[float, float, str]]:  # type: ignore  # pragma: no cover

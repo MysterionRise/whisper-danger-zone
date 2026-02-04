@@ -36,19 +36,15 @@ jobs:
 
     - name: Run black (code formatting check)
       run: black --check .
-      continue-on-error: true
 
     - name: Run isort (import sorting check)
       run: isort --check-only --profile black .
-      continue-on-error: true
 
     - name: Run flake8 (style guide enforcement)
       run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-      continue-on-error: true
 
     - name: Run flake8 (complexity check)
-      run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
-      continue-on-error: true
+      run: flake8 . --count --max-complexity=10 --max-line-length=120 --statistics
 
   security:
     name: Security Scanning
@@ -66,18 +62,22 @@ jobs:
     - name: Install security scanning tools
       run: |
         python -m pip install --upgrade pip
-        pip install bandit
+        pip install bandit safety
 
     - name: Run bandit (security linter)
-      run: bandit -r . -f json -o bandit-report.json || true
-      continue-on-error: true
+      run: bandit -r . -x ./tests -f json -o bandit-report.json
 
-    - name: Upload bandit report
+    - name: Run safety (dependency vulnerability check)
+      run: safety check -r requirements.txt --output json > safety-report.json || safety check -r requirements.txt
+
+    - name: Upload security reports
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: bandit-security-report
-        path: bandit-report.json
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
 
   test:
     name: Test Suite (Python ${{ matrix.python-version }})
@@ -129,7 +129,7 @@ jobs:
         file: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
-        fail_ci_if_error: false
+        fail_ci_if_error: true
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
@@ -170,7 +170,6 @@ jobs:
 
     - name: Run mypy (static type checking)
       run: mypy main.py convert.py --ignore-missing-imports --no-strict-optional
-      continue-on-error: true
 
   integration-test:
     name: Integration Tests

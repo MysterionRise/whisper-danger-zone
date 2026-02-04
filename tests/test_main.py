@@ -10,14 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from main import (
-    diarize_audio,
-    load_diarization_pipeline,
-    merge_diarization,
-    parse_args,
-    run_whisper,
-    write_outputs,
-)
+from main import diarize_audio, load_diarization_pipeline, merge_diarization, parse_args, run_whisper, write_outputs
 
 
 class TestParseArgs:
@@ -75,11 +68,7 @@ class TestMergeDiarization:
 
     def test_merge_single_segment_single_speaker(self):
         """Test merging with one segment and one speaker."""
-        whisper_result = {
-            "segments": [
-                {"start": 0.0, "end": 5.0, "text": "Hello world"}
-            ]
-        }
+        whisper_result = {"segments": [{"start": 0.0, "end": 5.0, "text": "Hello world"}]}
         spk_segments = [(0.0, 5.0, "SPEAKER_00")]
 
         result = merge_diarization(whisper_result, spk_segments)
@@ -94,7 +83,7 @@ class TestMergeDiarization:
             "segments": [
                 {"start": 0.0, "end": 2.0, "text": "Hello"},
                 {"start": 2.0, "end": 4.0, "text": "world"},
-                {"start": 4.0, "end": 6.0, "text": "today"}
+                {"start": 4.0, "end": 6.0, "text": "today"},
             ]
         }
         spk_segments = [(0.0, 6.0, "SPEAKER_00")]
@@ -110,14 +99,10 @@ class TestMergeDiarization:
             "segments": [
                 {"start": 0.0, "end": 2.0, "text": "Hello"},
                 {"start": 2.5, "end": 4.5, "text": "Hi there"},
-                {"start": 5.0, "end": 7.0, "text": "How are you?"}
+                {"start": 5.0, "end": 7.0, "text": "How are you?"},
             ]
         }
-        spk_segments = [
-            (0.0, 2.5, "SPEAKER_00"),
-            (2.5, 5.0, "SPEAKER_01"),
-            (5.0, 7.0, "SPEAKER_00")
-        ]
+        spk_segments = [(0.0, 2.5, "SPEAKER_00"), (2.5, 5.0, "SPEAKER_01"), (5.0, 7.0, "SPEAKER_00")]
 
         result = merge_diarization(whisper_result, spk_segments)
 
@@ -131,12 +116,10 @@ class TestMergeDiarization:
         whisper_result = {
             "segments": [
                 {"start": 0.0, "end": 1.0, "text": "Hello"},
-                {"start": 10.0, "end": 11.0, "text": "World"}  # Gap in speaker timeline
+                {"start": 10.0, "end": 11.0, "text": "World"},  # Gap in speaker timeline
             ]
         }
-        spk_segments = [
-            (0.0, 2.0, "SPEAKER_00")
-        ]
+        spk_segments = [(0.0, 2.0, "SPEAKER_00")]
 
         result = merge_diarization(whisper_result, spk_segments)
 
@@ -146,16 +129,9 @@ class TestMergeDiarization:
 
     def test_merge_overlapping_speakers(self):
         """Test with overlapping speaker segments."""
-        whisper_result = {
-            "segments": [
-                {"start": 0.0, "end": 3.0, "text": "First segment"}
-            ]
-        }
+        whisper_result = {"segments": [{"start": 0.0, "end": 3.0, "text": "First segment"}]}
         # Midpoint is 1.5, which falls in SPEAKER_00's range
-        spk_segments = [
-            (0.0, 2.0, "SPEAKER_00"),
-            (1.5, 4.0, "SPEAKER_01")
-        ]
+        spk_segments = [(0.0, 2.0, "SPEAKER_00"), (1.5, 4.0, "SPEAKER_01")]
 
         result = merge_diarization(whisper_result, spk_segments)
 
@@ -167,15 +143,7 @@ class TestMergeDiarization:
         """Test that original Whisper segment metadata is preserved."""
         whisper_result = {
             "segments": [
-                {
-                    "start": 0.0,
-                    "end": 2.0,
-                    "text": "Hello",
-                    "id": 1,
-                    "seek": 0,
-                    "tokens": [1, 2, 3],
-                    "temperature": 0.0
-                }
+                {"start": 0.0, "end": 2.0, "text": "Hello", "id": 1, "seek": 0, "tokens": [1, 2, 3], "temperature": 0.0}
             ]
         }
         spk_segments = [(0.0, 2.0, "SPEAKER_00")]
@@ -200,16 +168,10 @@ class TestMergeDiarization:
     def test_merge_unordered_speaker_segments(self):
         """Test that speaker segments are sorted before merging."""
         whisper_result = {
-            "segments": [
-                {"start": 0.0, "end": 2.0, "text": "Hello"},
-                {"start": 5.0, "end": 7.0, "text": "World"}
-            ]
+            "segments": [{"start": 0.0, "end": 2.0, "text": "Hello"}, {"start": 5.0, "end": 7.0, "text": "World"}]
         }
         # Deliberately unordered
-        spk_segments = [
-            (5.0, 8.0, "SPEAKER_01"),
-            (0.0, 3.0, "SPEAKER_00")
-        ]
+        spk_segments = [(5.0, 8.0, "SPEAKER_01"), (0.0, 3.0, "SPEAKER_00")]
 
         result = merge_diarization(whisper_result, spk_segments)
 
@@ -222,10 +184,7 @@ class TestWriteOutputs:
 
     def test_write_plain_transcript_to_stdout(self, capsys):
         """Test writing plain transcript to stdout."""
-        result = {
-            "text": "This is a test transcript.",
-            "segments": []
-        }
+        result = {"text": "This is a test transcript.", "segments": []}
         args = MagicMock()
         args.diarize = False
         args.output = None
@@ -238,10 +197,7 @@ class TestWriteOutputs:
 
     def test_write_transcript_to_file(self, tmp_path: pathlib.Path):
         """Test writing transcript to a file."""
-        result = {
-            "text": "File transcript test.",
-            "segments": []
-        }
+        result = {"text": "File transcript test.", "segments": []}
         output_file = tmp_path / "transcript.txt"
 
         args = MagicMock()
@@ -262,8 +218,8 @@ class TestWriteOutputs:
             "speaker_segments": [
                 {"speaker": "SPEAKER_00", "text": "Hello there."},
                 {"speaker": "SPEAKER_01", "text": "Hi!"},
-                {"speaker": "SPEAKER_00", "text": "How are you?"}
-            ]
+                {"speaker": "SPEAKER_00", "text": "How are you?"},
+            ],
         }
         output_file = tmp_path / "diarized.txt"
 
@@ -282,12 +238,7 @@ class TestWriteOutputs:
 
     def test_write_json_output(self, tmp_path: pathlib.Path):
         """Test writing JSON output."""
-        result = {
-            "text": "JSON test",
-            "segments": [
-                {"start": 0.0, "end": 2.0, "text": "JSON test"}
-            ]
-        }
+        result = {"text": "JSON test", "segments": [{"start": 0.0, "end": 2.0, "text": "JSON test"}]}
         json_file = tmp_path / "result.json"
 
         args = MagicMock()
@@ -304,10 +255,7 @@ class TestWriteOutputs:
 
     def test_write_both_transcript_and_json(self, tmp_path: pathlib.Path):
         """Test writing both transcript and JSON files."""
-        result = {
-            "text": "Both outputs test",
-            "segments": []
-        }
+        result = {"text": "Both outputs test", "segments": []}
         txt_file = tmp_path / "transcript.txt"
         json_file = tmp_path / "result.json"
 
@@ -327,7 +275,7 @@ class TestWriteOutputs:
             "speaker_segments": [
                 {"speaker": "SPEAKER_00", "text": "First sentence."},
                 {"speaker": "SPEAKER_00", "text": "Second sentence."},
-                {"speaker": "SPEAKER_01", "text": "Different speaker."}
+                {"speaker": "SPEAKER_01", "text": "Different speaker."},
             ]
         }
         args = MagicMock()
@@ -387,7 +335,7 @@ class TestRunWhisper:
         mock_whisper.load_model.return_value = mock_model
         mock_model.transcribe.return_value = {"text": "English text"}
 
-        result = run_whisper(args)
+        run_whisper(args)
 
         # Verify language was passed to transcribe
         call_kwargs = mock_model.transcribe.call_args[1]
@@ -411,7 +359,7 @@ class TestRunWhisper:
         mock_whisper.load_model.return_value = mock_model
         mock_model.transcribe.return_value = {"text": "Translated text"}
 
-        result = run_whisper(args)
+        run_whisper(args)
 
         call_kwargs = mock_model.transcribe.call_args[1]
         assert call_kwargs["task"] == "translate"
@@ -434,7 +382,7 @@ class TestRunWhisper:
         mock_whisper.load_model.return_value = mock_model
         mock_model.transcribe.return_value = {"text": "Quiet transcription"}
 
-        result = run_whisper(args)
+        run_whisper(args)
 
         call_kwargs = mock_model.transcribe.call_args[1]
         assert call_kwargs["verbose"] is False
@@ -461,7 +409,7 @@ class TestLoadDiarizationPipeline:
         """Test loading pipeline with environment variable token."""
         mock_pipeline.from_pretrained.return_value = MagicMock()
 
-        pipeline = load_diarization_pipeline(None)
+        load_diarization_pipeline(None)
 
         mock_pipeline.from_pretrained.assert_called_once()
         call_kwargs = mock_pipeline.from_pretrained.call_args[1]
@@ -472,7 +420,7 @@ class TestLoadDiarizationPipeline:
         """Test loading pipeline with explicitly provided token."""
         mock_pipeline.from_pretrained.return_value = MagicMock()
 
-        pipeline = load_diarization_pipeline("explicit_token")
+        load_diarization_pipeline("explicit_token")
 
         call_kwargs = mock_pipeline.from_pretrained.call_args[1]
         assert call_kwargs["use_auth_token"] == "explicit_token"
@@ -528,10 +476,7 @@ class TestDiarizeAudio:
         mock_turn_2.end = 5.0
 
         mock_annotation = MagicMock()
-        mock_annotation.itertracks.return_value = [
-            (mock_turn_1, None, "SPEAKER_00"),
-            (mock_turn_2, None, "SPEAKER_01")
-        ]
+        mock_annotation.itertracks.return_value = [(mock_turn_1, None, "SPEAKER_00"), (mock_turn_2, None, "SPEAKER_01")]
 
         mock_pipeline_instance = MagicMock()
         mock_pipeline_instance.return_value = mock_annotation
@@ -549,12 +494,7 @@ class TestDiarizeAudio:
         audio_file.touch()
 
         # Mock multiple speaker turns
-        turns = [
-            (0.0, 1.5, "SPEAKER_00"),
-            (1.5, 3.0, "SPEAKER_01"),
-            (3.0, 4.5, "SPEAKER_00"),
-            (4.5, 6.0, "SPEAKER_02")
-        ]
+        turns = [(0.0, 1.5, "SPEAKER_00"), (1.5, 3.0, "SPEAKER_01"), (3.0, 4.5, "SPEAKER_00"), (4.5, 6.0, "SPEAKER_02")]
 
         mock_turns = []
         for start, end, speaker in turns:
