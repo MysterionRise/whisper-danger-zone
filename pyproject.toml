@@ -83,6 +83,7 @@ omit = [
     "setup.py",
     ".venv/*",
     "venv/*",
+    "backends/voxtral_backend.py",  # Optional backend requiring torch/transformers/librosa
 ]
 
 [tool.coverage.report]
@@ -98,4 +99,4 @@ exclude_dirs = [
     "venv",
     ".git",
 ]
-skips = ["B101", "B601"]  # Skip assert_used and shell_injection_subprocess (we use shell commands intentionally)
+skips = ["B101", "B601", "B615"]  # B101: assert_used, B601: shell_injection (intentional), B615: huggingface revision (users want latest models)
