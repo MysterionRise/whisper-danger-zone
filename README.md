@@ -7,16 +7,17 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Speech-to-text transcription with optional speaker diarization using open-source models (no cloud APIs required).
+Speech-to-text transcription with pluggable backends (Whisper, Voxtral) and optional speaker diarization (no cloud APIs required).
 
 ## Features
 
-- 🎤 **Speech-to-Text**: Powered by OpenAI Whisper (offline, multiple model sizes)
+- 🎤 **Multi-Backend Support**: OpenAI Whisper (default) or Mistral Voxtral models
 - 👥 **Speaker Diarization**: Optional speaker identification using pyannote.audio
 - 🔄 **Audio Conversion**: Batch convert OGG/Opus files to WAV
 - 📝 **Multiple Output Formats**: Plain text, speaker-labeled text, JSON
 - 🚀 **Fully Offline**: No cloud APIs, runs completely on your machine
-- 🧪 **Comprehensive Tests**: Full test suite with CI/CD pipeline
+- 🔌 **Extensible Architecture**: Easy to add new transcription backends
+- 🧪 **Enterprise-Grade Quality**: Full test suite, CI/CD, 80% coverage minimum
 
 ## Installation
 
@@ -52,18 +53,41 @@ pip install -r requirements-dev.txt
 ### Basic Transcription
 
 ```bash
-# Transcribe audio file to stdout
+# Transcribe audio file to stdout (uses Whisper by default)
 python main.py audio.wav
 
 # Save to file
 python main.py audio.mp3 -o transcript.txt
 
-# Use specific Whisper model
+# Use specific model
 python main.py audio.mp3 --model large
 
 # Quiet mode (no progress bars)
 python main.py audio.mp3 --quiet
 ```
+
+### Backend Selection
+
+```bash
+# List available backends
+python main.py --list-backends
+
+# List models for a backend
+python main.py --list-models
+python main.py --list-models --backend voxtral
+
+# Use Whisper (default)
+python main.py audio.mp3 --backend whisper --model turbo
+
+# Use Voxtral Mini (requires extra dependencies)
+python main.py audio.mp3 --backend voxtral --model voxtral-mini
+```
+
+**Available Backends:**
+| Backend | Models | Description |
+|---------|--------|-------------|
+| `whisper` | tiny, base, small, medium, large, turbo | OpenAI Whisper - fast, accurate, multilingual |
+| `voxtral` | voxtral-mini, voxtral-small | Mistral Voxtral - strong multilingual support |
 
 ### Speaker Diarization
 
@@ -185,9 +209,15 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
 whisper-danger-zone/
 ├── main.py                  # Main CLI for transcription + diarization
 ├── convert.py               # Audio format conversion utility
+├── backends/                # Pluggable transcription backends
+│   ├── __init__.py          # Backend registry
+│   ├── base.py              # TranscriptionBackend abstract class
+│   ├── whisper_backend.py   # OpenAI Whisper implementation
+│   └── voxtral_backend.py   # Mistral Voxtral implementation
 ├── tests/                   # Comprehensive test suite
 │   ├── test_main.py         # Tests for main.py
-│   └── test_convert.py      # Tests for convert.py
+│   ├── test_convert.py      # Tests for convert.py
+│   └── test_backends.py     # Tests for backend system
 ├── requirements.txt         # Production dependencies
 ├── requirements-dev.txt     # Development dependencies
 ├── pyproject.toml           # Project config (black, isort, mypy, coverage)

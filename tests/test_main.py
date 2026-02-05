@@ -4,13 +4,20 @@ from __future__ import annotations
 
 import json
 import pathlib
-import tempfile
-from typing import Any, Dict, List
+from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from main import diarize_audio, load_diarization_pipeline, merge_diarization, parse_args, run_whisper, write_outputs
+from main import (
+    diarize_audio,
+    load_diarization_pipeline,
+    merge_diarization,
+    parse_args,
+    show_backends,
+    show_models,
+    write_outputs,
+)
 
 
 class TestParseArgs:
@@ -20,13 +27,14 @@ class TestParseArgs:
         """Test parsing with only required audio argument."""
         args = parse_args(["audio.mp3"])
         assert args.audio == pathlib.Path("audio.mp3")
-        assert args.model == "turbo"
+        assert args.model is None  # Uses backend default
         assert args.task == "transcribe"
         assert args.diarize is False
         assert args.quiet is False
+        assert args.backend == "whisper"
 
     def test_parse_args_custom_model(self):
-        """Test parsing with custom Whisper model."""
+        """Test parsing with custom model."""
         args = parse_args(["audio.mp3", "--model", "large"])
         assert args.model == "large"
 
@@ -62,16 +70,44 @@ class TestParseArgs:
         assert args.output == pathlib.Path("transcript.txt")
         assert args.json == pathlib.Path("result.json")
 
+    def test_parse_args_backend_selection(self):
+        """Test parsing with backend selection."""
+        args = parse_args(["audio.mp3", "--backend", "voxtral"])
+        assert args.backend == "voxtral"
+
+    def test_parse_args_short_backend_flag(self):
+        """Test parsing with short backend flag."""
+        args = parse_args(["audio.mp3", "-b", "voxtral"])
+        assert args.backend == "voxtral"
+
+    def test_parse_args_list_backends(self):
+        """Test parsing with list-backends flag."""
+        args = parse_args(["--list-backends"])
+        assert args.list_backends is True
+        assert args.audio is None  # Audio not required for info flags
+
+    def test_parse_args_list_models(self):
+        """Test parsing with list-models flag."""
+        args = parse_args(["--list-models"])
+        assert args.list_models is True
+        assert args.audio is None
+
+    def test_parse_args_list_models_with_backend(self):
+        """Test parsing with list-models and backend."""
+        args = parse_args(["--list-models", "--backend", "voxtral"])
+        assert args.list_models is True
+        assert args.backend == "voxtral"
+
 
 class TestMergeDiarization:
-    """Test merging Whisper segments with speaker diarization."""
+    """Test merging transcription segments with speaker diarization."""
 
     def test_merge_single_segment_single_speaker(self):
         """Test merging with one segment and one speaker."""
-        whisper_result = {"segments": [{"start": 0.0, "end": 5.0, "text": "Hello world"}]}
+        transcription_result = {"segments": [{"start": 0.0, "end": 5.0, "text": "Hello world"}]}
         spk_segments = [(0.0, 5.0, "SPEAKER_00")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert len(result) == 1
         assert result[0]["speaker"] == "SPEAKER_00"
@@ -79,7 +115,7 @@ class TestMergeDiarization:
 
     def test_merge_multiple_segments_single_speaker(self):
         """Test merging multiple segments with one speaker."""
-        whisper_result = {
+        transcription_result = {
             "segments": [
                 {"start": 0.0, "end": 2.0, "text": "Hello"},
                 {"start": 2.0, "end": 4.0, "text": "world"},
@@ -88,14 +124,14 @@ class TestMergeDiarization:
         }
         spk_segments = [(0.0, 6.0, "SPEAKER_00")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert len(result) == 3
         assert all(seg["speaker"] == "SPEAKER_00" for seg in result)
 
     def test_merge_speaker_changes(self):
         """Test merging with speaker changes."""
-        whisper_result = {
+        transcription_result = {
             "segments": [
                 {"start": 0.0, "end": 2.0, "text": "Hello"},
                 {"start": 2.5, "end": 4.5, "text": "Hi there"},
@@ -104,7 +140,7 @@ class TestMergeDiarization:
         }
         spk_segments = [(0.0, 2.5, "SPEAKER_00"), (2.5, 5.0, "SPEAKER_01"), (5.0, 7.0, "SPEAKER_00")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert len(result) == 3
         assert result[0]["speaker"] == "SPEAKER_00"
@@ -113,7 +149,7 @@ class TestMergeDiarization:
 
     def test_merge_segment_without_speaker(self):
         """Test segment that doesn't fall within any speaker interval."""
-        whisper_result = {
+        transcription_result = {
             "segments": [
                 {"start": 0.0, "end": 1.0, "text": "Hello"},
                 {"start": 10.0, "end": 11.0, "text": "World"},  # Gap in speaker timeline
@@ -121,7 +157,7 @@ class TestMergeDiarization:
         }
         spk_segments = [(0.0, 2.0, "SPEAKER_00")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert len(result) == 2
         assert result[0]["speaker"] == "SPEAKER_00"
@@ -129,26 +165,26 @@ class TestMergeDiarization:
 
     def test_merge_overlapping_speakers(self):
         """Test with overlapping speaker segments."""
-        whisper_result = {"segments": [{"start": 0.0, "end": 3.0, "text": "First segment"}]}
+        transcription_result = {"segments": [{"start": 0.0, "end": 3.0, "text": "First segment"}]}
         # Midpoint is 1.5, which falls in SPEAKER_00's range
         spk_segments = [(0.0, 2.0, "SPEAKER_00"), (1.5, 4.0, "SPEAKER_01")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert len(result) == 1
         # Should match first speaker that contains the midpoint
         assert result[0]["speaker"] == "SPEAKER_00"
 
-    def test_merge_preserves_whisper_metadata(self):
-        """Test that original Whisper segment metadata is preserved."""
-        whisper_result = {
+    def test_merge_preserves_metadata(self):
+        """Test that original segment metadata is preserved."""
+        transcription_result = {
             "segments": [
                 {"start": 0.0, "end": 2.0, "text": "Hello", "id": 1, "seek": 0, "tokens": [1, 2, 3], "temperature": 0.0}
             ]
         }
         spk_segments = [(0.0, 2.0, "SPEAKER_00")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert result[0]["id"] == 1
         assert result[0]["seek"] == 0
@@ -158,25 +194,33 @@ class TestMergeDiarization:
 
     def test_merge_empty_segments(self):
         """Test merging with empty segments."""
-        whisper_result = {"segments": []}
+        transcription_result = {"segments": []}
         spk_segments = [(0.0, 5.0, "SPEAKER_00")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert len(result) == 0
 
     def test_merge_unordered_speaker_segments(self):
         """Test that speaker segments are sorted before merging."""
-        whisper_result = {
+        transcription_result = {
             "segments": [{"start": 0.0, "end": 2.0, "text": "Hello"}, {"start": 5.0, "end": 7.0, "text": "World"}]
         }
         # Deliberately unordered
         spk_segments = [(5.0, 8.0, "SPEAKER_01"), (0.0, 3.0, "SPEAKER_00")]
 
-        result = merge_diarization(whisper_result, spk_segments)
+        result = merge_diarization(transcription_result, spk_segments)
 
         assert result[0]["speaker"] == "SPEAKER_00"
         assert result[1]["speaker"] == "SPEAKER_01"
+
+    def test_merge_missing_segments_key(self):
+        """Test merging with missing segments key in result."""
+        transcription_result: Dict[str, Any] = {"text": "Just text"}  # No segments key
+
+        result = merge_diarization(transcription_result, [(0.0, 1.0, "SPEAKER_00")])
+
+        assert len(result) == 0
 
 
 class TestWriteOutputs:
@@ -291,113 +335,44 @@ class TestWriteOutputs:
         assert captured.out.count("[SPEAKER_01]") == 1
 
 
-class TestRunWhisper:
-    """Test Whisper transcription functionality."""
+class TestShowBackends:
+    """Test backend listing functionality."""
 
-    @patch("main.whisper")
-    def test_run_whisper_basic(self, mock_whisper, tmp_path: pathlib.Path):
-        """Test basic Whisper transcription."""
-        audio_file = tmp_path / "test.mp3"
-        audio_file.touch()
+    def test_show_backends_output(self, capsys):
+        """Test that show_backends displays backend info."""
+        show_backends()
 
-        args = MagicMock()
-        args.audio = audio_file
-        args.model = "turbo"
-        args.device = None
-        args.language = None
-        args.task = "transcribe"
-        args.quiet = False
+        captured = capsys.readouterr()
+        assert "whisper" in captured.out
+        assert "voxtral" in captured.out
+        assert "(default)" in captured.out
 
-        mock_model = MagicMock()
-        mock_whisper.load_model.return_value = mock_model
-        mock_model.transcribe.return_value = {"text": "Test transcription"}
+    def test_show_models_whisper(self, capsys):
+        """Test that show_models displays Whisper models."""
+        show_models("whisper")
 
-        result = run_whisper(args)
+        captured = capsys.readouterr()
+        assert "tiny" in captured.out
+        assert "turbo" in captured.out
+        assert "(default)" in captured.out
 
-        mock_whisper.load_model.assert_called_once_with("turbo", device=None)
-        assert result["text"] == "Test transcription"
+    def test_show_models_voxtral(self, capsys):
+        """Test that show_models displays Voxtral models."""
+        show_models("voxtral")
 
-    @patch("main.whisper")
-    def test_run_whisper_with_language(self, mock_whisper, tmp_path: pathlib.Path):
-        """Test Whisper with language specification."""
-        audio_file = tmp_path / "test.mp3"
-        audio_file.touch()
+        captured = capsys.readouterr()
+        assert "voxtral-mini" in captured.out
+        assert "voxtral-small" in captured.out
 
-        args = MagicMock()
-        args.audio = audio_file
-        args.model = "turbo"
-        args.device = None
-        args.language = "en"
-        args.task = "transcribe"
-        args.quiet = False
-
-        mock_model = MagicMock()
-        mock_whisper.load_model.return_value = mock_model
-        mock_model.transcribe.return_value = {"text": "English text"}
-
-        run_whisper(args)
-
-        # Verify language was passed to transcribe
-        call_kwargs = mock_model.transcribe.call_args[1]
-        assert call_kwargs["language"] == "en"
-
-    @patch("main.whisper")
-    def test_run_whisper_translate_task(self, mock_whisper, tmp_path: pathlib.Path):
-        """Test Whisper with translate task."""
-        audio_file = tmp_path / "test.mp3"
-        audio_file.touch()
-
-        args = MagicMock()
-        args.audio = audio_file
-        args.model = "turbo"
-        args.device = None
-        args.language = None
-        args.task = "translate"
-        args.quiet = False
-
-        mock_model = MagicMock()
-        mock_whisper.load_model.return_value = mock_model
-        mock_model.transcribe.return_value = {"text": "Translated text"}
-
-        run_whisper(args)
-
-        call_kwargs = mock_model.transcribe.call_args[1]
-        assert call_kwargs["task"] == "translate"
-
-    @patch("main.whisper")
-    def test_run_whisper_quiet_mode(self, mock_whisper, tmp_path: pathlib.Path):
-        """Test Whisper in quiet mode."""
-        audio_file = tmp_path / "test.mp3"
-        audio_file.touch()
-
-        args = MagicMock()
-        args.audio = audio_file
-        args.model = "turbo"
-        args.device = None
-        args.language = None
-        args.task = "transcribe"
-        args.quiet = True
-
-        mock_model = MagicMock()
-        mock_whisper.load_model.return_value = mock_model
-        mock_model.transcribe.return_value = {"text": "Quiet transcription"}
-
-        run_whisper(args)
-
-        call_kwargs = mock_model.transcribe.call_args[1]
-        assert call_kwargs["verbose"] is False
-
-    @patch("main.whisper")
     @patch("main.sys.exit")
-    def test_run_whisper_missing_file(self, mock_exit, mock_whisper):
-        """Test error handling for missing audio file."""
-        args = MagicMock()
-        args.audio = pathlib.Path("/nonexistent/audio.mp3")
+    def test_show_models_invalid_backend(self, mock_exit):
+        """Test show_models with invalid backend."""
+        mock_exit.side_effect = SystemExit("Error")
 
-        run_whisper(args)
+        with pytest.raises(SystemExit):
+            show_models("invalid_backend")
 
         mock_exit.assert_called_once()
-        assert "does not exist" in str(mock_exit.call_args[0][0])
 
 
 class TestLoadDiarizationPipeline:
