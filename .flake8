@@ -1,5 +1,5 @@
 [flake8]
-# Flake8 configuration for whisper-danger-zone
+# Flake8 configuration for speech-transcription-toolkit
 
 max-line-length = 120
 max-complexity = 10

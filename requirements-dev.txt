@@ -1,4 +1,4 @@
-# Development and testing dependencies for whisper-danger-zone
+# Development and testing dependencies for speech-transcription-toolkit
 
 # Pre-commit hooks
 pre-commit>=3.6.0

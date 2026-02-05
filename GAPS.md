@@ -193,8 +193,8 @@ The README has no visual indicators of project health:
 
 Add badges:
 ```markdown
-[![CI](https://github.com/MysterionRise/whisper-danger-zone/actions/workflows/ci.yml/badge.svg)]
-[![codecov](https://codecov.io/gh/MysterionRise/whisper-danger-zone/branch/main/graph/badge.svg)]
+[![CI](https://github.com/MysterionRise/speech-transcription-toolkit/actions/workflows/ci.yml/badge.svg)]
+[![codecov](https://codecov.io/gh/MysterionRise/speech-transcription-toolkit/branch/main/graph/badge.svg)]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)]
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)]

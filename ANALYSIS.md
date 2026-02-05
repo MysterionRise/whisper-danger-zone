@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive analysis of the `whisper-danger-zone` library, identifying flaws, security concerns, and areas for improvement while preserving its core functionality: **voice detection and speech-to-text using open-source models without cloud APIs**.
+This document provides a comprehensive analysis of the `speech-transcription-toolkit` library, identifying flaws, security concerns, and areas for improvement while preserving its core functionality: **voice detection and speech-to-text using open-source models without cloud APIs**.
 
 **Analysis Date:** 2025-11-13
 **Code Version:** Commit bf927a6
@@ -593,7 +593,7 @@ print(f"Detected language: {detected_language} (confidence: {confidence:.2%})")
 
 ## Conclusion
 
-The `whisper-danger-zone` library has a solid foundation with clean code and good use of open-source models. However, it requires:
+The `speech-transcription-toolkit` library has a solid foundation with clean code and good use of open-source models. However, it requires:
 
 1. **Critical security fixes** for file handling vulnerabilities
 2. **Better error handling and input validation** for production use

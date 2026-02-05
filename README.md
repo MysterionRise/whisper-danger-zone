@@ -1,7 +1,7 @@
-# whisper-danger-zone
+# speech-transcription-toolkit
 
-[![CI](https://github.com/MysterionRise/whisper-danger-zone/actions/workflows/ci.yml/badge.svg)](https://github.com/MysterionRise/whisper-danger-zone/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/MysterionRise/whisper-danger-zone/branch/main/graph/badge.svg)](https://codecov.io/gh/MysterionRise/whisper-danger-zone)
+[![CI](https://github.com/MysterionRise/speech-transcription-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/MysterionRise/speech-transcription-toolkit/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MysterionRise/speech-transcription-toolkit/branch/main/graph/badge.svg)](https://codecov.io/gh/MysterionRise/speech-transcription-toolkit)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
@@ -206,7 +206,7 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
 ## Architecture
 
 ```
-whisper-danger-zone/
+speech-transcription-toolkit/
 ├── main.py                  # Main CLI for transcription + diarization
 ├── convert.py               # Audio format conversion utility
 ├── backends/                # Pluggable transcription backends

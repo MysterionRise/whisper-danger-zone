@@ -1,4 +1,4 @@
-# Contributing to whisper-danger-zone
+# Contributing to speech-transcription-toolkit
 
 Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to this project.
 
@@ -37,8 +37,8 @@ This project adheres to the Contributor Covenant Code of Conduct. By participati
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/whisper-danger-zone.git
-cd whisper-danger-zone
+git clone https://github.com/YOUR_USERNAME/speech-transcription-toolkit.git
+cd speech-transcription-toolkit
 
 # Create a virtual environment
 python -m venv venv

@@ -1,1 +1,1 @@
-"""Tests for whisper-danger-zone."""
+"""Tests for speech-transcription-toolkit."""
