@@ -131,7 +131,7 @@ jobs:
         file: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
-        fail_ci_if_error: true
+        fail_ci_if_error: false  # Don't fail if Codecov upload fails (requires token for public repos)
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
