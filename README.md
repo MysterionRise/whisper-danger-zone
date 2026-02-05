@@ -1,5 +1,12 @@
 # whisper-danger-zone
 
+[![CI](https://github.com/MysterionRise/whisper-danger-zone/actions/workflows/ci.yml/badge.svg)](https://github.com/MysterionRise/whisper-danger-zone/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MysterionRise/whisper-danger-zone/branch/main/graph/badge.svg)](https://codecov.io/gh/MysterionRise/whisper-danger-zone)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Speech-to-text transcription with optional speaker diarization using open-source models (no cloud APIs required).
 
 ## Features
@@ -131,6 +138,19 @@ pytest -n auto
 
 ### Code Quality
 
+**Recommended: Use pre-commit hooks** to automatically run quality checks before each commit:
+
+```bash
+# Install pre-commit hooks (one-time setup)
+pip install pre-commit
+pre-commit install
+
+# Run all hooks manually
+pre-commit run --all-files
+```
+
+**Manual commands:**
+
 ```bash
 # Format code
 black .
@@ -150,12 +170,12 @@ bandit -r .
 
 ### CI/CD
 
-GitHub Actions automatically runs:
-- ✅ Unit tests (Python 3.10, 3.11, 3.12)
-- ✅ Code quality checks (black, isort, flake8)
-- ✅ Security scanning (bandit, safety)
-- ✅ Type checking (mypy)
-- ✅ Integration tests
+GitHub Actions automatically runs (all checks are **blocking** - merges require passing CI):
+- Unit tests (Python 3.10, 3.11) with 80% coverage threshold
+- Code quality checks (black, isort, flake8)
+- Security scanning (bandit, safety)
+- Type checking (mypy)
+- Integration tests
 
 See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
 
@@ -163,16 +183,19 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
 
 ```
 whisper-danger-zone/
-├── main.py              # Main CLI for transcription + diarization
-├── convert.py           # Audio format conversion utility
-├── tests/               # Comprehensive test suite
-│   ├── test_main.py     # Tests for main.py
-│   └── test_convert.py  # Tests for convert.py
-├── requirements.txt     # Production dependencies
-├── requirements-dev.txt # Development dependencies
-├── pytest.ini           # Pytest configuration
-├── ANALYSIS.md          # Detailed code analysis and improvement roadmap
-└── .github/workflows/   # CI/CD pipeline
+├── main.py                  # Main CLI for transcription + diarization
+├── convert.py               # Audio format conversion utility
+├── tests/                   # Comprehensive test suite
+│   ├── test_main.py         # Tests for main.py
+│   └── test_convert.py      # Tests for convert.py
+├── requirements.txt         # Production dependencies
+├── requirements-dev.txt     # Development dependencies
+├── pyproject.toml           # Project config (black, isort, mypy, coverage)
+├── .pre-commit-config.yaml  # Pre-commit hook configuration
+├── .github/workflows/       # CI/CD pipeline (blocking quality gates)
+├── CONTRIBUTING.md          # Contribution guidelines
+├── SECURITY.md              # Security policy
+└── GAPS.md                  # Enterprise quality gap analysis
 ```
 
 ## Analysis & Roadmap
@@ -186,12 +209,22 @@ See [ANALYSIS.md](ANALYSIS.md) for:
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `pytest`
-5. Run code quality checks: `black . && isort . && flake8 .`
-6. Submit a pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines, including:
+- Development environment setup
+- Code style and conventions
+- Testing requirements (80% coverage minimum)
+- Pull request process
+
+Quick start:
+```bash
+pip install -r requirements-dev.txt
+pre-commit install
+pytest
+```
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporting process.
 
 ## License
 
