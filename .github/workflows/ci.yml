@@ -32,13 +32,13 @@ jobs:
     - name: Install linting dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install black isort flake8
+        pip install black==24.10.0 isort==5.13.2 flake8==7.1.1
 
     - name: Run black (code formatting check)
-      run: black --check .
+      run: black --check --line-length 120 .
 
     - name: Run isort (import sorting check)
-      run: isort --check-only --profile black .
+      run: isort --check-only --profile black --line-length 120 .
 
     - name: Run flake8 (style guide enforcement)
       run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
